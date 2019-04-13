@@ -9,8 +9,18 @@ class UsersController < ApplicationController
   
   def show
     @user = User.find(params[:id])
+    @first_day = first_day(params[:first_day])
+    @last_day = @first_day.end_of_month
+    (@first_day..@last_day).each do |day|
+      unless @user.attendances.any? {|attendance| attendance.worked_on == day}
+        record = @user.attendances.build(worked_on: day)
+        record.save
+      end
+    end
+    @dates = user_attendances_month_date
   end
 
+    
   def new
     @user = User.new
   end
@@ -45,11 +55,11 @@ class UsersController < ApplicationController
   end
   
   def edit_basic_info
-   @user = User.find(params[:id])
+  @user = User.find(params[:id])
   end
 
-  def update_basic_info
-    @user = User.find(params[:id])
+def update_basic_info
+  @user = User.find(params[:id])
   if @user.update_attributes(basic_info_params)
     flash[:success] = "基本情報を更新しました。"
     redirect_to @user   
@@ -59,14 +69,13 @@ class UsersController < ApplicationController
 end
 
   private
+  def user_params
+    params.require(:user).permit(:name, :email, :department, :password, :password_confirmation)
+  end
 
-    def user_params
-      params.require(:user).permit(:name, :email, :department, :password, :password_confirmation)
-    end
-    
-    def basic_info_params
-      params.require(:user).permit(:basic_time, :work_time)
-    end
+  def basic_info_params
+    params.require(:user).permit(:basic_time, :work_time)
+  end
     
      # beforeアクション
 
@@ -90,4 +99,5 @@ end
       redirect_to(root_url) unless current_user.admin?
     end
     
+  end
 end
