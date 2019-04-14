@@ -8,6 +8,7 @@ class UsersController < ApplicationController
   end
   
   def show
+<<<<<<< HEAD
     @user = User.find(params[:id])
     @first_day = first_day(params[:first_day])
     @last_day = @first_day.end_of_month
@@ -18,6 +19,23 @@ class UsersController < ApplicationController
       end
     end
     @dates = user_attendances_month_date
+=======
+  @user = User.find(params[:id])
+  if params[:first_day].nil?
+    @first_day = Date.today.beginning_of_month
+  else
+    @first_day = Date.parse(params[:first_day])
+  end
+  @last_day = @first_day.end_of_month
+  (@first_day..@last_day).each do |day|
+    unless @user.attendances.any? {|attendance| attendance.worked_on == day}
+      record = @user.attendances.build(worked_on: day)
+      record.save
+    end
+  end
+  @dates = @user.attendances.where('worked_on >= ? and worked_on <= ?', @first_day, @last_day).order('worked_on')
+  @worked_sum = @dates.where.not(started_at: nil).count
+>>>>>>> user-attendances-show-page
   end
 
     
@@ -66,7 +84,7 @@ def update_basic_info
   else
     render 'edit_basic_info'
   end
-end
+  end
 
   private
   def user_params
